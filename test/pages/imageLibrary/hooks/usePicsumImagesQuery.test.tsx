@@ -78,6 +78,44 @@ describe('usePicsumImagesQuery', () => {
     expect(mockFetch).toHaveBeenLastCalledWith('https://picsum.photos/v2/list?page=3&limit=5')
   })
 
+  it('returns a cached page without refetching during the same session', async () => {
+    const initialImages = [
+      {
+        id: '1',
+        author: 'Alejandro Escamilla',
+        width: 5616,
+        height: 3744,
+        url: 'https://unsplash.com/photos/yC-Yzbqy7PY',
+        download_url: 'https://picsum.photos/id/1/5616/3744',
+      },
+    ]
+    const nextPageImages = [
+      {
+        id: '11',
+        author: 'Paul Jarvis',
+        width: 2500,
+        height: 1667,
+        url: 'https://unsplash.com/photos/6J--NXulQCs',
+        download_url: 'https://picsum.photos/id/11/2500/1667',
+      },
+    ]
+    mockFetch
+      .mockResolvedValueOnce(createImagesResponse(true, initialImages))
+      .mockResolvedValueOnce(createImagesResponse(true, nextPageImages))
+
+    const { result } = renderHook(() => usePicsumImagesQuery(), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() => expect(result.current.data).toEqual(initialImages))
+    await expect(result.current.getImagesPage(2)).resolves.toEqual(nextPageImages)
+    await expect(result.current.getImagesPage(1)).resolves.toEqual(initialImages)
+
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(mockFetch).toHaveBeenNthCalledWith(1, 'https://picsum.photos/v2/list?page=1&limit=10')
+    expect(mockFetch).toHaveBeenNthCalledWith(2, 'https://picsum.photos/v2/list?page=2&limit=10')
+  })
+
   it('throws when Picsum responds with an error', async () => {
     mockFetch.mockResolvedValue(createImagesResponse(false))
 

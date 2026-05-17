@@ -12,6 +12,7 @@ export type PicsumImage = {
 const PICSUM_IMAGES_URL = 'https://picsum.photos/v2/list'
 const INITIAL_PAGE = 1
 const INITIAL_LIMIT = 10
+const SESSION_CACHE_TIME = Infinity // until the end of the session
 
 const createImagesSearchParams = (page: number, limit: number) =>
   new URLSearchParams({
@@ -31,6 +32,13 @@ const getImages = async (searchParams: URLSearchParams): Promise<PicsumImage[]> 
   return response.json()
 }
 
+const createImagesQueryOptions = (searchParams: URLSearchParams) => ({
+  queryKey: getImagesQueryKey(searchParams),
+  queryFn: () => getImages(searchParams),
+  staleTime: SESSION_CACHE_TIME,
+  gcTime: SESSION_CACHE_TIME,
+})
+
 /**
  * Fetches the initial Picsum image page and exposes a helper for loading additional pages.
  *
@@ -43,16 +51,10 @@ export const usePicsumImagesQuery = () => {
   const getImagesPage = (page: number, limit = INITIAL_LIMIT) => {
     const pageSearchParams = createImagesSearchParams(page, limit)
 
-    return queryClient.fetchQuery({
-      queryKey: getImagesQueryKey(pageSearchParams),
-      queryFn: () => getImages(pageSearchParams),
-    })
+    return queryClient.fetchQuery(createImagesQueryOptions(pageSearchParams))
   }
 
-  const query = useQuery({
-    queryKey: getImagesQueryKey(searchParams),
-    queryFn: () => getImages(searchParams),
-  })
+  const query = useQuery(createImagesQueryOptions(searchParams))
 
   return {
     ...query,
