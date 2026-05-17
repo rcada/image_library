@@ -10,9 +10,15 @@ import './image-list.css'
  */
 export interface ImageListProps {
   /** Images to render in the grid. */
-  itemData: { imgSource: string; title?: string; subtitle?: string }[]
+  itemData: ImageListItemData[]
   /** Whether to show skeleton placeholders instead of image items. */
   loading?: boolean
+}
+
+type ImageListItemData = {
+  imgSource: string
+  title?: string
+  subtitle?: string
 }
 
 const SKELETON_ITEMS_COUNT = 10
@@ -25,27 +31,34 @@ const DEAFULT_IMAGE_LIST_WIDTH = 700
  * Displays a fixed-size image grid with optional loading placeholders.
  */
 export default function ImageList({ itemData, loading = false }: ImageListProps) {
-  const imageSkeleton = <Skeleton variant="rectangular" height={DEFAULT_IMAGE_SIZE} />
+  const renderImageSkeleton = () => <Skeleton variant="rectangular" height={DEFAULT_IMAGE_SIZE} />
+
+  const renderLoadingImageListItem = (index: number) => (
+    <ImageListItem key={index}>
+      {renderImageSkeleton()}
+      <Skeleton variant="text" />
+      <Skeleton variant="text" width="60%" />
+    </ImageListItem>
+  )
+
+  const renderImageListItem = (item: ImageListItemData) => (
+    <ImageListItem key={item.imgSource}>
+      <ImageWithSkeleton
+        alt={item.title}
+        renderImageSkeleton={renderImageSkeleton}
+        src={item.imgSource}
+      />
+      <ImageListItemBar title={item.title} subtitle={item.subtitle} position="below" />
+    </ImageListItem>
+  )
+
   return (
     <MuiImageList sx={{ width: DEAFULT_IMAGE_LIST_WIDTH }}>
       {loading
-        ? Array.from({ length: SKELETON_ITEMS_COUNT }, (_, index) => (
-            <ImageListItem key={index}>
-              {imageSkeleton}
-              <Skeleton variant="text" />
-              <Skeleton variant="text" width="60%" />
-            </ImageListItem>
-          ))
-        : itemData.map((item) => (
-            <ImageListItem key={item.imgSource}>
-              <ImageWithSkeleton
-                alt={item.title}
-                imageSkeleton={imageSkeleton}
-                src={item.imgSource}
-              />
-              <ImageListItemBar title={item.title} subtitle={item.subtitle} position="below" />
-            </ImageListItem>
-          ))}
+        ? Array.from({ length: SKELETON_ITEMS_COUNT }, (_, index) =>
+            renderLoadingImageListItem(index),
+          )
+        : itemData.map(renderImageListItem)}
     </MuiImageList>
   )
 }
@@ -53,16 +66,16 @@ export default function ImageList({ itemData, loading = false }: ImageListProps)
 interface ImageWithSkeletonProps {
   alt?: string
   src: string
-  imageSkeleton: JSX.Element
+  renderImageSkeleton: () => JSX.Element
 }
 
 function ImageWithSkeleton(props: ImageWithSkeletonProps) {
-  const { alt, src, imageSkeleton } = props
+  const { alt, src, renderImageSkeleton } = props
   const [loaded, setLoaded] = useState(false)
 
   return (
     <div className="image-with-skeleton_container">
-      {!loaded && imageSkeleton}
+      {!loaded && renderImageSkeleton()}
 
       <img
         src={`${src}?w=${DEFAULT_IMAGE_SIZE}&fit=crop&auto=format`}
