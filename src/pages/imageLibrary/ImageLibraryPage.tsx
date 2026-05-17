@@ -20,11 +20,15 @@ export default function ImageLibraryPage() {
     imgSource: image.download_url,
     title: image.author,
   }))
+  const renderPagination = () => (
+    <MuiPagination count={10} onChange={handlePageChange} page={page} />
+  )
 
   return (
     <div className="image-library-page">
-      <MuiPagination count={10} onChange={handlePageChange} page={page} />
+      {renderPagination()}
       <ImageList itemData={itemData} />
+      {renderPagination()}
     </div>
   )
 }

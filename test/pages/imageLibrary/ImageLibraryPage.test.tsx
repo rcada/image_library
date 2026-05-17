@@ -45,17 +45,21 @@ describe('ImageLibraryPage', () => {
     return getImagesPage
   }
 
-  it('renders pagination above the image list', () => {
+  it('renders pagination above and below the image list', () => {
     mockImagesQuery()
 
     const { container } = render(<ImageLibraryPage />)
+    const pagination = screen.getAllByTestId('pagination')
+    const imageList = screen.getByTestId('image-list')
 
-    expect(screen.getByTestId('pagination')).toBeInTheDocument()
-    expect(screen.getByTestId('image-list')).toBeInTheDocument()
+    expect(pagination).toHaveLength(2)
+    expect(imageList).toBeInTheDocument()
     expect(container.firstChild).toHaveClass('image-library-page')
     expect(
-      screen.getByTestId('pagination').compareDocumentPosition(screen.getByTestId('image-list')) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
+      pagination[0].compareDocumentPosition(imageList) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(
+      imageList.compareDocumentPosition(pagination[1]) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
   })
 
@@ -129,11 +133,15 @@ describe('ImageLibraryPage', () => {
     })
 
     expect(getImagesPage).toHaveBeenCalledWith(2)
-    expect(mockPagination).toHaveBeenLastCalledWith(
+    const lastPaginationProps = mockPagination.mock.calls.slice(-2).map(([props]) => props)
+    expect(lastPaginationProps).toEqual([
       expect.objectContaining({
         page: 2,
       }),
-    )
+      expect.objectContaining({
+        page: 2,
+      }),
+    ])
     expect(mockImageList).toHaveBeenLastCalledWith({
       itemData: [
         {
