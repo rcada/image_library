@@ -55,14 +55,13 @@ describe('ImageList', () => {
     expect(mockMuiImageList).toHaveBeenCalledTimes(1)
   })
 
-  it('passes item metadata to MUI item bars and renders image props', () => {
+  it('passes item titles to MUI item bars and renders image props', () => {
     render(
       <ImageList
         itemData={[
           {
             imgSource: '/image-one.jpg',
             title: 'First image',
-            subtitle: 'First subtitle',
           },
           {
             imgSource: '/image-two.jpg',
@@ -75,12 +74,10 @@ describe('ImageList', () => {
     expect(mockImageListItem).toHaveBeenCalledTimes(2)
     expect(mockImageListItemBar).toHaveBeenNthCalledWith(1, {
       title: 'First image',
-      subtitle: 'First subtitle',
       position: 'below',
     })
     expect(mockImageListItemBar).toHaveBeenNthCalledWith(2, {
       title: 'Second image',
-      subtitle: undefined,
       position: 'below',
     })
 
@@ -119,7 +116,6 @@ describe('ImageList', () => {
     const firstImage = {
       imgSource: '/image-one.jpg',
       title: 'First image',
-      subtitle: 'First subtitle',
     }
     const secondImage = {
       imgSource: '/image-two.jpg',

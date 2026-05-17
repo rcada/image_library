@@ -31,6 +31,13 @@ jest.mock('../../../src/components/imageModal/ImageModal', () => ({
   default: (props: Record<string, unknown>) => mockImageModal(props),
 }))
 
+jest.mock('../../../src/pages/imageLibrary/components/AIDescription', () => ({
+  __esModule: true,
+  default: ({ imgSource }: { imgSource: string }) => (
+    <p data-testid="ai-description">{imgSource}</p>
+  ),
+}))
+
 jest.mock('../../../src/pages/imageLibrary/hooks/usePicsumImagesQuery', () => ({
   usePicsumImagesQuery: jest.fn(),
 }))
@@ -181,13 +188,15 @@ describe('ImageLibraryPage', () => {
 
     render(<ImageLibraryPage />)
 
-    expect(mockImageModal).toHaveBeenLastCalledWith({
-      open: false,
-      onClose: expect.any(Function),
-      imageSrc: undefined,
-      title: undefined,
-      subtitle: undefined,
-    })
+    expect(mockImageModal).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        open: false,
+        onClose: expect.any(Function),
+        renderAiDescription: expect.any(Function),
+      }),
+    )
+    expect(mockImageModal.mock.calls.at(-1)?.[0]).not.toHaveProperty('imgSource')
+    expect(mockImageModal.mock.calls.at(-1)?.[0]).not.toHaveProperty('title')
 
     const onImageClick = mockImageList.mock.calls[0][0].onImageClick as (
       image: Record<string, unknown>,
@@ -197,30 +206,40 @@ describe('ImageLibraryPage', () => {
       onImageClick({
         imgSource: 'https://picsum.photos/id/1/1200/800',
         title: 'Selected Author',
-        subtitle: 'Selected subtitle',
       })
     })
 
-    expect(mockImageModal).toHaveBeenLastCalledWith({
-      open: true,
-      onClose: expect.any(Function),
-      imageSrc: 'https://picsum.photos/id/1/1200/800',
-      title: 'Selected Author',
-      subtitle: 'Selected subtitle',
-    })
+    expect(mockImageModal).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        open: true,
+        onClose: expect.any(Function),
+        imgSource: 'https://picsum.photos/id/1/1200/800',
+        title: 'Selected Author',
+        renderAiDescription: expect.any(Function),
+      }),
+    )
 
     const onClose = mockImageModal.mock.calls.at(-1)?.[0].onClose as () => void
+    const renderAiDescription = mockImageModal.mock.calls.at(-1)?.[0].renderAiDescription as (
+      imgSource: string,
+    ) => ReactElement<{ imgSource: string }>
+
+    expect(renderAiDescription('https://picsum.photos/id/1/1200/800').props).toEqual({
+      imgSource: 'https://picsum.photos/id/1/1200/800',
+    })
 
     act(() => {
       onClose()
     })
 
-    expect(mockImageModal).toHaveBeenLastCalledWith({
-      open: false,
-      onClose: expect.any(Function),
-      imageSrc: undefined,
-      title: undefined,
-      subtitle: undefined,
-    })
+    expect(mockImageModal).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        open: false,
+        onClose: expect.any(Function),
+        renderAiDescription: expect.any(Function),
+      }),
+    )
+    expect(mockImageModal.mock.calls.at(-1)?.[0]).not.toHaveProperty('imgSource')
+    expect(mockImageModal.mock.calls.at(-1)?.[0]).not.toHaveProperty('title')
   })
 })

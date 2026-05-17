@@ -20,7 +20,6 @@ export interface ImageListProps {
 export type ImageListItemData = {
   imgSource: string
   title?: string
-  subtitle?: string
 }
 
 const SKELETON_ITEMS_COUNT = 10
@@ -50,7 +49,7 @@ export default function ImageList({ itemData, loading = false, onImageClick }: I
         renderImageSkeleton={renderImageSkeleton}
         src={item.imgSource}
       />
-      <ImageListItemBar title={item.title} subtitle={item.subtitle} position="below" />
+      <ImageListItemBar title={item.title} position="below" />
     </ImageListItem>
   )
 

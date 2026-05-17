@@ -4,6 +4,7 @@ import ImageList, { type ImageListItemData } from '../../components/imageList/Im
 import ImageModal from '../../components/imageModal/ImageModal'
 import { type PicsumImage, usePicsumImagesQuery } from './hooks/usePicsumImagesQuery'
 import './image-library-page.css'
+import AIDescription from './components/AIDescription'
 
 const INITIAL_PAGE = 1
 
@@ -33,6 +34,7 @@ export default function ImageLibraryPage() {
       <ImageModal
         open={Boolean(selectedImage)}
         onClose={() => setSelectedImage(undefined)}
+        renderAiDescription={(imgSource) => <AIDescription imgSource={imgSource} />}
         {...selectedImage}
       />
       {renderPagination()}

@@ -1,14 +1,14 @@
 import { createContext, type PropsWithChildren, useContext, useMemo, useState } from 'react'
 
 type ApiKeyContextValue = {
-  apiKey: string
+  apiKey: string | null
   setApiKey: (apiKey: string) => void
 }
 
 const ApiKeyContext = createContext<ApiKeyContextValue | undefined>(undefined)
 
 export function ApiKeyProvider({ children }: PropsWithChildren) {
-  const [apiKey, setApiKey] = useState('')
+  const [apiKey, setApiKey] = useState<null | string>(null)
   const value = useMemo(() => ({ apiKey, setApiKey }), [apiKey])
 
   return <ApiKeyContext.Provider value={value}>{children}</ApiKeyContext.Provider>
