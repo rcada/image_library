@@ -1,5 +1,5 @@
 import type { ChangeEventHandler, ReactNode } from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import ApiKeySettings from '../../../src/components/apiKeySettings/ApiKeySettings'
 
 type PropsWithChildren = {
@@ -8,6 +8,8 @@ type PropsWithChildren = {
 }
 
 type TextFieldProps = {
+  color?: 'primary' | 'success'
+  error: boolean
   fullWidth?: boolean
   label: string
   type: string
@@ -57,8 +59,10 @@ describe('ApiKeySettings', () => {
   it('renders the password text field and save button with provided labels', () => {
     render(
       <ApiKeySettings
-        textFieldLabel="OpenAI API key"
         buttonLabel="Save key"
+        error={false}
+        success={false}
+        textFieldLabel="OpenAI API key"
         onApiKeySave={jest.fn()}
       />,
     )
@@ -73,8 +77,10 @@ describe('ApiKeySettings', () => {
   it('disables the save button while the API key field is empty', () => {
     render(
       <ApiKeySettings
-        textFieldLabel="OpenAI API key"
         buttonLabel="Save key"
+        error={false}
+        success={false}
+        textFieldLabel="OpenAI API key"
         onApiKeySave={jest.fn()}
       />,
     )
@@ -82,13 +88,34 @@ describe('ApiKeySettings', () => {
     expect(screen.getByRole('button', { name: 'Save key' })).toBeDisabled()
   })
 
-  it('calls onApiKeySave with the entered API key when the button is clicked', () => {
-    const onApiKeySave = jest.fn()
+  it('passes status props to the text field', () => {
+    render(
+      <ApiKeySettings
+        buttonLabel="Save key"
+        error
+        success
+        textFieldLabel="OpenAI API key"
+        onApiKeySave={jest.fn()}
+      />,
+    )
+
+    expect(mockMuiTextField).toHaveBeenCalledWith(
+      expect.objectContaining({
+        color: 'success',
+        error: true,
+      }),
+    )
+  })
+
+  it('calls onApiKeySave with the entered API key when the button is clicked', async () => {
+    const onApiKeySave = jest.fn().mockResolvedValue(true)
 
     render(
       <ApiKeySettings
-        textFieldLabel="OpenAI API key"
         buttonLabel="Save key"
+        error={false}
+        success={false}
+        textFieldLabel="OpenAI API key"
         onApiKeySave={onApiKeySave}
       />,
     )
@@ -98,17 +125,19 @@ describe('ApiKeySettings', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save key' }))
 
-    expect(onApiKeySave).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(onApiKeySave).toHaveBeenCalledTimes(1))
     expect(onApiKeySave).toHaveBeenCalledWith('sk-test-key')
   })
 
-  it('disables the save button after saving until the API key changes', () => {
-    const onApiKeySave = jest.fn()
+  it('disables the save button after saving until the API key changes', async () => {
+    const onApiKeySave = jest.fn().mockResolvedValue(true)
 
     render(
       <ApiKeySettings
-        textFieldLabel="OpenAI API key"
         buttonLabel="Save key"
+        error={false}
+        success={false}
+        textFieldLabel="OpenAI API key"
         onApiKeySave={onApiKeySave}
       />,
     )
@@ -122,11 +151,36 @@ describe('ApiKeySettings', () => {
     expect(saveButton).toBeEnabled()
 
     fireEvent.click(saveButton)
-    expect(saveButton).toBeDisabled()
+    await waitFor(() => expect(saveButton).toBeDisabled())
 
     fireEvent.change(textField, {
       target: { value: 'sk-updated-key' },
     })
+    expect(saveButton).toBeEnabled()
+  })
+
+  it('keeps the save button enabled when saving fails', async () => {
+    const onApiKeySave = jest.fn().mockResolvedValue(false)
+
+    render(
+      <ApiKeySettings
+        buttonLabel="Save key"
+        error={false}
+        success={false}
+        textFieldLabel="OpenAI API key"
+        onApiKeySave={onApiKeySave}
+      />,
+    )
+
+    const textField = screen.getByLabelText('OpenAI API key')
+    const saveButton = screen.getByRole('button', { name: 'Save key' })
+
+    fireEvent.change(textField, {
+      target: { value: 'sk-invalid-key' },
+    })
+    fireEvent.click(saveButton)
+
+    await waitFor(() => expect(onApiKeySave).toHaveBeenCalledTimes(1))
     expect(saveButton).toBeEnabled()
   })
 })
