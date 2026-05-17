@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import ImageList from '../../../src/components/imageList/ImageList'
 
 type PropsWithChildren = {
@@ -84,13 +84,32 @@ describe('ImageList', () => {
 
     expect(screen.getByAltText('First image')).toHaveAttribute(
       'src',
-      '/image-one.jpg?w=248&fit=crop&auto=format',
-    )
-    expect(screen.getByAltText('First image')).toHaveAttribute(
-      'srcset',
-      '/image-one.jpg?w=248&fit=crop&auto=format&dpr=2 2x',
+      '/image-one.jpg?w=250&fit=crop&auto=format',
     )
     expect(screen.getByAltText('Second image')).toHaveAttribute('loading', 'lazy')
+  })
+
+  it('shows an image skeleton until the image loads', () => {
+    render(
+      <ImageList
+        itemData={[
+          {
+            imgSource: '/image-one.jpg',
+            title: 'First image',
+          },
+        ]}
+      />,
+    )
+
+    const image = screen.getByAltText('First image')
+
+    expect(screen.getByTestId('mui-skeleton')).toBeInTheDocument()
+    expect(image).toHaveClass('image-with-skeleton_image', 'hidden')
+
+    fireEvent.load(image)
+
+    expect(screen.queryByTestId('mui-skeleton')).not.toBeInTheDocument()
+    expect(image).toHaveClass('image-with-skeleton_image', 'loaded')
   })
 
   it('renders skeleton placeholders when loading', () => {
