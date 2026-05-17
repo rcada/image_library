@@ -11,11 +11,13 @@ import './image-list.css'
 export interface ImageListProps {
   /** Images to render in the grid. */
   itemData: ImageListItemData[]
+  /** Called when an image item is clicked. */
+  onImageClick?: (image: ImageListItemData) => void
   /** Whether to show skeleton placeholders instead of image items. */
   loading?: boolean
 }
 
-type ImageListItemData = {
+export type ImageListItemData = {
   imgSource: string
   title?: string
   subtitle?: string
@@ -30,7 +32,7 @@ const DEAFULT_IMAGE_LIST_WIDTH = 700
 /**
  * Displays a fixed-size image grid with optional loading placeholders.
  */
-export default function ImageList({ itemData, loading = false }: ImageListProps) {
+export default function ImageList({ itemData, loading = false, onImageClick }: ImageListProps) {
   const renderImageSkeleton = () => <Skeleton variant="rectangular" height={DEFAULT_IMAGE_SIZE} />
 
   const renderLoadingImageListItem = (index: number) => (
@@ -42,7 +44,7 @@ export default function ImageList({ itemData, loading = false }: ImageListProps)
   )
 
   const renderImageListItem = (item: ImageListItemData) => (
-    <ImageListItem key={item.imgSource}>
+    <ImageListItem key={item.imgSource} onClick={() => onImageClick?.(item)}>
       <ImageWithSkeleton
         alt={item.title}
         renderImageSkeleton={renderImageSkeleton}

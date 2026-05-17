@@ -12,6 +12,9 @@ const mockPagination = jest.fn<ReactElement, [Record<string, unknown>]>(() => (
 const mockImageList = jest.fn<ReactElement, [Record<string, unknown>]>(() => (
   <section data-testid="image-list" />
 ))
+const mockImageModal = jest.fn<ReactElement, [Record<string, unknown>]>(() => (
+  <aside data-testid="image-modal" />
+))
 
 jest.mock('@mui/material/Pagination', () => ({
   __esModule: true,
@@ -21,6 +24,11 @@ jest.mock('@mui/material/Pagination', () => ({
 jest.mock('../../../src/components/imageList/ImageList', () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => mockImageList(props),
+}))
+
+jest.mock('../../../src/components/imageModal/ImageModal', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockImageModal(props),
 }))
 
 jest.mock('../../../src/pages/imageLibrary/hooks/usePicsumImagesQuery', () => ({
@@ -51,9 +59,11 @@ describe('ImageLibraryPage', () => {
     const { container } = render(<ImageLibraryPage />)
     const pagination = screen.getAllByTestId('pagination')
     const imageList = screen.getByTestId('image-list')
+    const imageModal = screen.getByTestId('image-modal')
 
     expect(pagination).toHaveLength(2)
     expect(imageList).toBeInTheDocument()
+    expect(imageModal).toBeInTheDocument()
     expect(container.firstChild).toHaveClass('image-library-page')
     expect(
       pagination[0].compareDocumentPosition(imageList) & Node.DOCUMENT_POSITION_FOLLOWING,
@@ -85,18 +95,21 @@ describe('ImageLibraryPage', () => {
 
     render(<ImageLibraryPage />)
 
-    expect(mockImageList).toHaveBeenCalledWith({
-      itemData: [
-        {
-          imgSource: 'https://picsum.photos/id/1/1200/800',
-          title: 'Some author',
-        },
-        {
-          imgSource: 'https://picsum.photos/id/2/900/600',
-          title: 'Ada Lovelace',
-        },
-      ],
-    })
+    expect(mockImageList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        itemData: [
+          {
+            imgSource: 'https://picsum.photos/id/1/1200/800',
+            title: 'Some author',
+          },
+          {
+            imgSource: 'https://picsum.photos/id/2/900/600',
+            title: 'Ada Lovelace',
+          },
+        ],
+        onImageClick: expect.any(Function),
+      }),
+    )
   })
 
   it('fetches and displays images for the selected page', async () => {
@@ -142,13 +155,72 @@ describe('ImageLibraryPage', () => {
         page: 2,
       }),
     ])
-    expect(mockImageList).toHaveBeenLastCalledWith({
-      itemData: [
-        {
-          imgSource: 'https://picsum.photos/id/2/900/600',
-          title: 'Next Page Author',
-        },
-      ],
+    expect(mockImageList).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        itemData: [
+          {
+            imgSource: 'https://picsum.photos/id/2/900/600',
+            title: 'Next Page Author',
+          },
+        ],
+      }),
+    )
+  })
+
+  it('opens the modal with the selected image and closes it', () => {
+    mockImagesQuery([
+      {
+        id: 'one',
+        author: 'Selected Author',
+        width: 1200,
+        height: 800,
+        url: 'https://picsum.photos/id/1',
+        download_url: 'https://picsum.photos/id/1/1200/800',
+      },
+    ])
+
+    render(<ImageLibraryPage />)
+
+    expect(mockImageModal).toHaveBeenLastCalledWith({
+      open: false,
+      onClose: expect.any(Function),
+      imageSrc: undefined,
+      title: undefined,
+      subtitle: undefined,
+    })
+
+    const onImageClick = mockImageList.mock.calls[0][0].onImageClick as (
+      image: Record<string, unknown>,
+    ) => void
+
+    act(() => {
+      onImageClick({
+        imgSource: 'https://picsum.photos/id/1/1200/800',
+        title: 'Selected Author',
+        subtitle: 'Selected subtitle',
+      })
+    })
+
+    expect(mockImageModal).toHaveBeenLastCalledWith({
+      open: true,
+      onClose: expect.any(Function),
+      imageSrc: 'https://picsum.photos/id/1/1200/800',
+      title: 'Selected Author',
+      subtitle: 'Selected subtitle',
+    })
+
+    const onClose = mockImageModal.mock.calls.at(-1)?.[0].onClose as () => void
+
+    act(() => {
+      onClose()
+    })
+
+    expect(mockImageModal).toHaveBeenLastCalledWith({
+      open: false,
+      onClose: expect.any(Function),
+      imageSrc: undefined,
+      title: undefined,
+      subtitle: undefined,
     })
   })
 })

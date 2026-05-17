@@ -12,8 +12,10 @@ const mockMuiImageList = jest.fn(({ children, ...props }: PropsWithChildren) => 
     {children}
   </div>
 ))
-const mockImageListItem = jest.fn(({ children }: PropsWithChildren) => (
-  <div data-testid="mui-image-list-item">{children}</div>
+const mockImageListItem = jest.fn(({ children, ...props }: PropsWithChildren) => (
+  <div data-testid="mui-image-list-item" {...props}>
+    {children}
+  </div>
 ))
 const mockImageListItemBar = jest.fn((props: Record<string, unknown>) => (
   <div data-testid="mui-image-list-item-bar" data-props={JSON.stringify(props)} />
@@ -110,6 +112,26 @@ describe('ImageList', () => {
 
     expect(screen.queryByTestId('mui-skeleton')).not.toBeInTheDocument()
     expect(image).toHaveClass('image-with-skeleton_image', 'loaded')
+  })
+
+  it('calls onImageClick with the clicked item data', () => {
+    const onImageClick = jest.fn()
+    const firstImage = {
+      imgSource: '/image-one.jpg',
+      title: 'First image',
+      subtitle: 'First subtitle',
+    }
+    const secondImage = {
+      imgSource: '/image-two.jpg',
+      title: 'Second image',
+    }
+
+    render(<ImageList itemData={[firstImage, secondImage]} onImageClick={onImageClick} />)
+
+    fireEvent.click(screen.getAllByTestId('mui-image-list-item')[1])
+
+    expect(onImageClick).toHaveBeenCalledTimes(1)
+    expect(onImageClick).toHaveBeenCalledWith(secondImage)
   })
 
   it('renders skeleton placeholders when loading', () => {
