@@ -1,0 +1,9 @@
+.api-key-settings {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.api-key-settings .MuiButton-root {
+  min-height: 56px;
+}
