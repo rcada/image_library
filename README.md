@@ -1,29 +1,30 @@
 # image_library
 
-A React and TypeScript project for an image library. Add the final project
-description here when it is ready.
+A React and TypeScript project for an image library.
 
-## Run Locally
+## Running the project
 
-Install dependencies:
+Install dependencies once:
 
 ```sh
 npm install
 ```
 
-Start the development server:
+Start the Vite development server:
 
 ```sh
 npm run dev
 ```
 
-Build for production:
+Open the local URL printed by Vite (`http://localhost:5173/`).
+
+To create a production build:
 
 ```sh
 npm run build
 ```
 
-Preview the production build:
+To preview the production build locally:
 
 ```sh
 npm run preview
