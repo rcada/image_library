@@ -20,7 +20,7 @@ const SKELETON_ITEMS_COUNT = 10
  */
 export default function ImageList({ itemData, loading = false }: ImageListProps) {
   return (
-    <MuiImageList sx={{ width: 500, height: 450 }}>
+    <MuiImageList>
       {loading
         ? Array.from({ length: SKELETON_ITEMS_COUNT }, (_, index) => (
             <ImageListItem key={index}>

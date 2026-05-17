@@ -18,6 +18,9 @@ const mockImageListItem = jest.fn(({ children }: PropsWithChildren) => (
 const mockImageListItemBar = jest.fn((props: Record<string, unknown>) => (
   <div data-testid="mui-image-list-item-bar" data-props={JSON.stringify(props)} />
 ))
+const mockSkeleton = jest.fn((props: Record<string, unknown>) => (
+  <div data-testid="mui-skeleton" data-props={JSON.stringify(props)} />
+))
 
 jest.mock('@mui/material/ImageList', () => ({
   __esModule: true,
@@ -34,20 +37,20 @@ jest.mock('@mui/material/ImageListItemBar', () => ({
   default: (props: Record<string, unknown>) => mockImageListItemBar(props),
 }))
 
+jest.mock('@mui/material/Skeleton', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockSkeleton(props),
+}))
+
 describe('ImageList', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('passes fixed sizing props to the MUI image list', () => {
+  it('renders the MUI image list', () => {
     render(<ImageList itemData={[]} />)
 
     expect(mockMuiImageList).toHaveBeenCalledTimes(1)
-    expect(mockMuiImageList.mock.calls[0][0]).toEqual(
-      expect.objectContaining({
-        sx: { width: 500, height: 450 },
-      }),
-    )
   })
 
   it('passes item metadata to MUI item bars and renders image props', () => {
@@ -88,5 +91,24 @@ describe('ImageList', () => {
       '/image-one.jpg?w=248&fit=crop&auto=format&dpr=2 2x',
     )
     expect(screen.getByAltText('Second image')).toHaveAttribute('loading', 'lazy')
+  })
+
+  it('renders skeleton placeholders when loading', () => {
+    render(
+      <ImageList
+        loading
+        itemData={[
+          {
+            imgSource: '/image-one.jpg',
+            title: 'First image',
+          },
+        ]}
+      />,
+    )
+
+    expect(mockImageListItem).toHaveBeenCalledTimes(10)
+    expect(mockSkeleton).toHaveBeenCalledTimes(30)
+    expect(mockImageListItemBar).not.toHaveBeenCalled()
+    expect(screen.queryByAltText('First image')).not.toBeInTheDocument()
   })
 })

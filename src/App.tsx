@@ -1,13 +1,16 @@
+import MuiTypography from '@mui/material/Typography'
+import ImageLibraryPage from './pages/imageLibrary/ImageLibraryPage'
+
 function App() {
   return (
     <main className="app">
       <section className="intro" aria-labelledby="project-title">
-        <p className="eyebrow">Image Library</p>
-        <h1 id="project-title">image_library</h1>
-        <p className="description">
-          Project description placeholder. Add the final description here when the project direction
-          is ready.
-        </p>
+        <MuiTypography variant="h3">Image Library</MuiTypography>
+        <MuiTypography variant="subtitle1" gutterBottom>
+          A simple image library project that fetches images from picsum photos and displays them
+          using Material UI components
+        </MuiTypography>
+        <ImageLibraryPage />
       </section>
     </main>
   )

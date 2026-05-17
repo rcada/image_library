@@ -5,4 +5,7 @@ module.exports = {
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
   },
+  moduleNameMapper: {
+    '\\.(css)$': '<rootDir>/test/styleMock.cjs', // For treating css files as empty module
+  },
 }
